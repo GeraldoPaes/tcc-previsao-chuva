@@ -4,12 +4,22 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import GridSearchCV, StratifiedKFold
-from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, KFold
 from sklearn import metrics
 
 from sklearn.base import clone
 
+def display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad):
+    print("\n" + "="*50)  # Divisor para identificar o final de um treino
+    # Exibir a mediana e a contagem de classes para cada quadrimestre no conjunto de teste
+    for quad in sorted(X_test['NEXT_QUAD'].unique()):
+        median_value = median_precip_train_next_quad[quad]
+        y_quad_test = y_test[X_test['NEXT_QUAD'] == quad]
+        class_counts = y_quad_test.value_counts()
+
+        print(f"\nQuadrimestre {quad}:")
+        print(f"Mediana: {median_value:.2f} mm")
+        print(f"Contagem de Classes no Teste: Alta = {class_counts.get(1, 0)}, Baixa = {class_counts.get(0, 0)}")
 
 def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_folds_inner=5, rand_state=42):
     print(f"\n\n\n **** RESULTADO DOS MODELOS + CURVAS ROC E PR ****\n")
@@ -41,23 +51,28 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
         tempos_de_treinamento = []
         best_model_params = []
         best_trained_models = []
-      
-        # Criar rótulos temporários binários
-        # Necessário para entrar como argumento no split.
-        temp_labels = np.zeros(len(X))
-        temp_labels[:len(X) // 2] = 1  # Dividir aleatoriamente entre 0 e 1
 
-        for train_ix, test_ix in cv_outer.split(X, temp_labels):
+        # Criar uma representação combinada dos quadrimestres para estratificação
+        X['stratify_quad'] = X['NEXT_QUAD'].astype(str)
+
+        for train_ix, test_ix in cv_outer.split(X, X['stratify_quad']):
             print(".", end="")
-
+        
             X_train, X_test = X.iloc[train_ix], X.iloc[test_ix]
+        
+            # Remover a coluna auxiliar após a divisão
+            X_train = X_train.drop(columns=['stratify_quad'])
+            X_test = X_test.drop(columns=['stratify_quad'])
 
-            # Calcular a mediana nos dados de treino
-            median_precip_train = X_train['PRECIP_NEXT_QUAD'].median()
+            # Calcular a mediana para cada próximo quadrimestre nos dados de treino
+            median_precip_train_next_quad = X_train.groupby('NEXT_QUAD')['PRECIP_NEXT_QUAD'].median()
 
-            # Definir y_train e y_test com base na mediana calculada
-            y_train = (X_train['PRECIP_NEXT_QUAD'] > median_precip_train).astype(int)
-            y_test = (X_test['PRECIP_NEXT_QUAD'] > median_precip_train).astype(int)
+            # Definir y_train e y_test com base na mediana calculada para cada próximo quadrimestre
+            y_train = X_train.apply(lambda row: int(row['PRECIP_NEXT_QUAD'] > median_precip_train_next_quad[row['NEXT_QUAD']]), axis=1)
+            y_test = X_test.apply(lambda row: int(row['PRECIP_NEXT_QUAD'] > median_precip_train_next_quad.get(row['NEXT_QUAD'], median_precip_train_next_quad.median())), axis=1)
+
+            # Exibir a mediana e a contagem de classes para o conjunto de teste
+            display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad)
 
             # Remover a coluna 'PRECIP_NEXT_QUAD' após definir y
             X_train = X_train.drop(columns=['PRECIP_NEXT_QUAD'])
@@ -65,7 +80,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
 
             grid_search = GridSearchCV(estimador_base, parametros, 
                                        scoring='f1', 
-                                       cv=StratifiedKFold(n_splits=k_folds_inner, shuffle=True, random_state=17),
+                                       cv=KFold(n_splits=k_folds_inner, shuffle=True, random_state=17),
                                        n_jobs=4)
             
             tempo_treinamento = time.time()
