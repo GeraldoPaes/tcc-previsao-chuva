@@ -72,7 +72,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
             y_test = X_test.apply(lambda row: int(row['PRECIP_NEXT_QUAD'] > median_precip_train_next_quad.get(row['NEXT_QUAD'], median_precip_train_next_quad.median())), axis=1)
 
             # Exibir a mediana e a contagem de classes para o conjunto de teste
-            display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad)
+            #display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad)
 
             # Remover a coluna 'PRECIP_NEXT_QUAD' após definir y
             X_train = X_train.drop(columns=['PRECIP_NEXT_QUAD'])
