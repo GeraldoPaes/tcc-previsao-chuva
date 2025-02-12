@@ -22,7 +22,7 @@ def display_median_and_class_counts(X_test, y_test, median_precip_train_next_qua
         print(f"Contagem de Classes no Teste: Alta = {class_counts.get(1, 0)}, Baixa = {class_counts.get(0, 0)}")
 
 def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_folds_inner=5, rand_state=42):
-    print(f"\n\n\n **** RESULTADO DOS MODELOS + CURVAS ROC E PR ****\n")
+    #print(f"\n\n\n **** RESULTADO DOS MODELOS + CURVAS ROC E PR ****\n")
 
     resultados_gerais = {}
 
@@ -80,7 +80,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
 
             grid_search = GridSearchCV(estimador_base, parametros, 
                                        scoring='f1', 
-                                       cv=KFold(n_splits=k_folds_inner, shuffle=True, random_state=17),
+                                       cv=KFold(n_splits=k_folds_inner, shuffle=True, random_state=rand_state),
                                        n_jobs=4)
             
             tempo_treinamento = time.time()
@@ -132,7 +132,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
                 pr_precision_list.append([])
                 pr_recall_list.append([])
         
-        print("\n-- coletando e armazenando resultados --\n")
+        #print("\n-- coletando e armazenando resultados --\n")
 
         accuracy_mean = np.mean(accuracy_list)
         accuracy_std = np.std(accuracy_list)
@@ -148,6 +148,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
         aucpr_mean = np.mean(aucpr_score_list)
         aucpr_std = np.std(aucpr_score_list)
 
+        """
         print(f" - Acurácia   : {accuracy_mean:.4f} +/- {accuracy_std:.5f}")
         print(f" - Precisão   : {precision_mean:.4f} +/- {precision_std:.5f}")
         print(f" - Revocação  : {recall_mean:.4f} +/- {recall_std:.5f}")
@@ -156,6 +157,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
         print(f" - PR - AUC   : {aucpr_mean:.4f} +/- {aucpr_std:.5f}")
         print(f" - Tempo médio de treinamento: {np.mean(tempos_de_treinamento):.2f} segundos\n")
         print('=' * 50, '\n')
+        """
 
         resultados_gerais[nome_do_modelo] = {
             "Acurácia_mean": accuracy_mean,
