@@ -4,7 +4,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, KFold
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, RepeatedStratifiedKFold, KFold
 from sklearn import metrics
 
 from sklearn.base import clone
@@ -21,7 +21,7 @@ def display_median_and_class_counts(X_test, y_test, median_precip_train_next_qua
         print(f"Mediana: {median_value:.2f} mm")
         print(f"Contagem de Classes no Teste: Alta = {class_counts.get(1, 0)}, Baixa = {class_counts.get(0, 0)}")
 
-def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_folds_inner=5, rand_state=42):
+def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_folds_inner=5, rand_state=82):
     #print(f"\n\n\n **** RESULTADO DOS MODELOS + CURVAS ROC E PR ****\n")
 
     resultados_gerais = {}
@@ -46,7 +46,8 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
 
         print(f"Treinando modelo {nome_do_modelo} ", end="")
 
-        cv_outer = StratifiedKFold(n_splits=k_folds_outer, shuffle=True, random_state=rand_state)
+        #cv_outer = StratifiedKFold(n_splits=k_folds_outer, shuffle=True)
+        cv_outer = RepeatedStratifiedKFold(n_splits=k_folds_outer, n_repeats=30, random_state=rand_state)
 
         tempos_de_treinamento = []
         best_model_params = []
