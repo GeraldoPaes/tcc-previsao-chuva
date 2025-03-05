@@ -9,18 +9,6 @@ from sklearn import metrics
 
 from sklearn.base import clone
 
-def display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad):
-    print("\n" + "="*50)  # Divisor para identificar o final de um treino
-    # Exibir a mediana e a contagem de classes para cada quadrimestre no conjunto de teste
-    for quad in sorted(X_test['NEXT_QUAD'].unique()):
-        median_value = median_precip_train_next_quad[quad]
-        y_quad_test = y_test[X_test['NEXT_QUAD'] == quad]
-        class_counts = y_quad_test.value_counts()
-
-        print(f"\nQuadrimestre {quad}:")
-        print(f"Mediana: {median_value:.2f} mm")
-        print(f"Contagem de Classes no Teste: Alta = {class_counts.get(1, 0)}, Baixa = {class_counts.get(0, 0)}")
-
 def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_folds_inner=5, rand_state=82):
     #print(f"\n\n\n **** RESULTADO DOS MODELOS + CURVAS ROC E PR ****\n")
 
@@ -71,9 +59,6 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
             # Definir y_train e y_test com base na mediana calculada para cada próximo quadrimestre
             y_train = X_train.apply(lambda row: int(row['PRECIP_NEXT_QUAD'] > median_precip_train_next_quad[row['NEXT_QUAD']]), axis=1)
             y_test = X_test.apply(lambda row: int(row['PRECIP_NEXT_QUAD'] > median_precip_train_next_quad.get(row['NEXT_QUAD'], median_precip_train_next_quad.median())), axis=1)
-
-            # Exibir a mediana e a contagem de classes para o conjunto de teste
-            #display_median_and_class_counts(X_test, y_test, median_precip_train_next_quad)
 
             # Remover a coluna 'PRECIP_NEXT_QUAD' após definir y
             X_train = X_train.drop(columns=['PRECIP_NEXT_QUAD'])
