@@ -38,7 +38,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
         cv_outer = RepeatedStratifiedKFold(n_splits=k_folds_outer, n_repeats=30, random_state=rand_state)
 
         tempos_de_treinamento = []
-        best_model_params = None
+        best_model_params = []
         best_trained_models = []
 
         # Criar uma representação combinada dos quadrimestres para estratificação
@@ -78,8 +78,7 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
             modelo_treinado = clone(grid_search.best_estimator_)
             modelo_treinado.set_params(**grid_search.best_params_)
 
-            if best_model_params is None or grid_search.best_score_ > np.mean(f1_score_list):
-                best_model_params = grid_search.best_params_
+            best_model_params.append(grid_search.best_params_)
 
             modelo_treinado = modelo_treinado.fit(X_train, y_train)
             
