@@ -48,6 +48,9 @@ def nested_cross_validation_grid_search(lista_modelos, X, k_folds_outer=5, k_fol
             print(".", end="")
         
             X_train, X_test = X.iloc[train_ix], X.iloc[test_ix]
+
+            # --- FILTRAR TESTE PARA QUADRIMESTRE 2 ---
+            X_test = X_test[X_test['NEXT_QUAD'] == 2]  # Filtra X_test
         
             # Remover a coluna auxiliar após a divisão
             X_train = X_train.drop(columns=['stratify_quad'])
